@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Покерний адвент · Еволюція</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg1:#073D2B; --bg2:#10563B; --panel:#0B4A33; --deep:#082F21;
+  --gold:#E9C46A; --gold-soft:rgba(233,196,106,.28); --cream:#FFF3D6; --muted:#B9D3C4;
+  --red:#E0575F; --ok:#8FD9A8; --bad:#F09A9A;
+  --head:"Formular","Trebuchet MS",system-ui,sans-serif;
+  --body:"Trebuchet MS",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--body);color:var(--cream);background:radial-gradient(circle at 50% 0%,var(--bg2),var(--bg1) 62%,#041F16);min-height:100vh;overflow-x:hidden;font-size:15px;line-height:1.5}
+#snow{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+#snow i{position:absolute;top:-10px;width:4px;height:4px;background:var(--cream);border-radius:50%;opacity:.35;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(110vh)}}
+.deco{position:fixed;pointer-events:none;z-index:0;user-select:none}
+.deco-garland{top:-24px;left:-34px;width:44vw;max-width:200px;transform:scaleX(-1);opacity:.28}
+main{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:14px 16px 36px}
+h2{font-family:var(--head);font-weight:800;font-size:22px;line-height:1.2;color:var(--cream);margin:6px 0 6px;text-align:center}
+p{margin:6px 0;line-height:1.5}
+
+/* бренд і декор */
+.brand{font-family:var(--head);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);text-align:center;margin:4px 0 14px}
+.suits{display:flex;justify-content:center;gap:12px;color:var(--gold);font-size:15px;opacity:.85;margin:0 0 10px}
+.suits .r{color:var(--red)}
+.badge{display:inline-block;border:1px solid var(--gold-soft);border-radius:999px;padding:4px 12px;font-size:12px;letter-spacing:.06em;color:var(--gold);margin:0 0 14px}
+
+/* кнопки */
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 16px;background:var(--gold);color:var(--deep);cursor:pointer;width:100%;margin:6px 0;transition:transform .15s ease,opacity .2s ease}
+button:active{transform:scale(.98)}
+button.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold-soft);font-weight:600}
+button:disabled{opacity:.45;cursor:default}
+button.opt{text-align:left;background:rgba(255,255,255,.04);color:var(--cream);border:1px solid var(--gold-soft);font-weight:400;font-size:15px;line-height:1.35;padding:12px 14px}
+button.opt.correct{background:rgba(143,217,168,.22);border-color:var(--ok);color:#ecfff3}
+button.opt.wrong{background:rgba(224,87,95,.2);border-color:var(--bad);color:#ffe9e9}
+button.opt:disabled{opacity:1;cursor:default}
+.hidden{display:none!important}
+
+/* вітальний екран */
+#welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:26px 6px 40px;min-height:auto}
+#welcome .w-title{font-family:"Formular Black","Formular",var(--head);font-weight:900;text-transform:uppercase;font-size:34px;line-height:1.05;margin:0 0 14px;color:var(--cream)}
+.w-lead{font-size:16px;color:var(--cream);opacity:.92;max-width:320px;margin:0 0 18px}
+.perks{list-style:none;margin:0 0 22px;padding:14px 16px;width:100%;max-width:340px;background:var(--panel);border:1px solid var(--gold-soft);border-radius:16px;text-align:left}
+.perks li{display:flex;align-items:center;gap:12px;padding:6px 0;font-size:15px}
+.pk{width:30px;height:30px;border-radius:50%;background:rgba(233,196,106,.14);color:var(--gold);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:14px}
+.pk.r{color:var(--red)}
+.w-btn,#toLevel,#lvlNext,#toCal{width:auto;min-width:220px;padding:13px 26px;border-radius:999px;font-size:16px;margin:6px auto;display:block}
+
+/* вибір рівня */
+#levelS{padding:20px 0 30px}
+.lv-sub{text-align:center;color:var(--muted);font-size:14px;margin:0 0 16px}
+.lv-cards{display:grid;gap:10px}
+.lv-card{position:relative;display:grid;grid-template-columns:44px 1fr;column-gap:12px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--gold-soft);border-radius:16px;padding:12px 14px;color:var(--cream);width:100%;margin:0;min-height:68px;cursor:pointer;transition:border-color .2s ease,background .2s ease}
+.lv-card .suit{width:44px;height:44px;border-radius:50%;background:rgba(233,196,106,.12);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:20px}
+.lv-card .suit.r{color:var(--red)}
+.lv-card .suit{grid-row:1 / span 4;align-self:center}
+.lv-head{grid-column:2;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding-right:70px}
+.lv-name{font-family:var(--head);font-weight:900;font-size:19px;letter-spacing:.03em;color:var(--cream)}
+.lv-en{font-size:12px;color:var(--muted);letter-spacing:.02em}
+#levelS{position:relative;padding-top:52px}
+#levelS .logo-tr{position:absolute;top:0;right:0;width:140px;max-width:none;margin:0}
+.lv-desc{font-family:"Formular",var(--body);font-weight:400;font-size:12.5px;line-height:1.4;color:var(--muted);grid-column:2}
+.lv-help{font-size:13px;line-height:1.45;color:var(--muted);text-align:center;margin:14px auto 4px;max-width:340px}
+.lv-card.sel{border:2px solid var(--gold);background:linear-gradient(135deg,rgba(233,196,106,.16),var(--panel))}
+.lv-card.sel::after{content:"Обрано";position:absolute;top:10px;right:12px;font-size:11px;color:var(--deep);background:var(--gold);border-radius:999px;padding:2px 9px;font-weight:700}
+.lv-back{width:auto;display:block;margin:12px auto 0;padding:9px 20px}
+
+/* як працює */
+#howS{padding:20px 0 30px}
+.how-card{display:grid;grid-template-columns:44px 1fr;column-gap:12px;align-items:start;background:var(--panel);border:1px solid var(--gold-soft);border-radius:16px;padding:14px;margin-bottom:10px}
+.how-num{font-family:var(--head);font-weight:800;font-size:26px;line-height:1;color:var(--gold)}
+.how-name{font-weight:700;font-size:15px;margin:0 0 4px;color:var(--cream)}
+.how-text{margin:0;font-size:14px;line-height:1.5;color:var(--muted)}
+
+/* календар */
+#calS{padding-top:6px}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);margin-bottom:4px}
+.top span#chips{color:var(--gold);font-weight:700}
+.daylbl{font-family:var(--head);font-weight:800;font-size:18px;color:var(--cream);margin:4px 0 8px}
+.card{background:rgba(0,0,0,.18);border:1px solid var(--gold-soft);border-radius:14px;padding:12px;margin:8px 0;font-size:14px}
+.card.demo{font-size:12px;padding:8px 10px;color:var(--muted)}
+.bar{height:8px;background:rgba(255,255,255,.12);border-radius:6px;overflow:hidden;margin-top:6px}
+.bar div{height:100%;background:linear-gradient(90deg,var(--gold),#F6DFA0);width:0;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.goal{color:var(--gold);font-weight:700;margin-top:6px}
+.board{background:var(--deep);border:1px solid var(--gold-soft);border-radius:16px;padding:10px;margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);grid-auto-rows:56px;gap:8px}
+.cell{border-radius:6px;position:relative;display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:800;color:#B3202E;background:var(--cream);cursor:pointer;overflow:hidden}
+.cell.red{background:#B3202E;color:var(--cream)}
+.cell.locked{opacity:.8}
+.cell.done{box-shadow:inset 0 0 0 3px var(--gold)}
+.cell.today{animation:pulse 1.8s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 3px var(--gold)}}
+.ill{position:absolute;height:auto;pointer-events:none;z-index:1}
+.lay-0 .ill{top:6px;left:6px}
+.lay-1 .ill{top:5px;left:50%;transform:translateX(-50%)}
+.lay-2 .ill{bottom:5px;right:6px}
+.lay-3 .ill{top:50%;right:5px;transform:translateY(-50%)}
+.lay-1{align-items:flex-end;padding-bottom:4px}
+.lay-2,.lay-3{justify-content:flex-start;padding-left:9px}
+.cell>span{line-height:1}
+#calMsg{color:var(--gold);font-size:13px;min-height:18px;margin:4px 0}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin:10px 0 0}
+
+/* модальне вікно */
+.modal{position:fixed;inset:0;background:rgba(3,22,15,.75);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet{background:linear-gradient(170deg,var(--bg2),var(--deep) 75%);border-top:1px solid var(--gold);border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:16px}
+.hud{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.hud b{color:var(--gold);font-weight:700;font-size:15px}
+.kicker{font-size:12px;color:var(--muted);margin:10px 0 0;letter-spacing:.06em;text-transform:uppercase}
+.sheet h2{text-align:left;font-size:20px;margin:2px 0 6px}
+.note{font-size:13px;color:var(--muted);background:rgba(0,0,0,.2);border-radius:12px;padding:8px 12px;margin:8px 0}
+.panel{background:rgba(0,0,0,.2);border-left:3px solid var(--gold);border-radius:10px;padding:10px 12px;margin:8px 0;font-size:15px;line-height:1.5}
+.qtext{font-size:17px;line-height:1.45;margin:4px 0 10px;color:#fff}
+.opts{display:grid;gap:8px}
+.verdict{font-size:16px;font-weight:700;margin:12px 0 2px;text-transform:uppercase;letter-spacing:.04em}
+.verdict.ok{color:var(--ok)}
+.verdict.bad{color:var(--bad)}
+.why{border-top:1px solid var(--gold-soft);margin-top:10px;padding-top:8px;font-size:14px;line-height:1.5}
+.why b{color:var(--gold);display:block;margin-bottom:4px}
+.askbox{background:rgba(233,196,106,.09);border:1px dashed var(--gold-soft);border-radius:12px;padding:10px;margin-top:10px;text-align:center}
+.askbox p{margin:0 0 6px;font-size:15px}
+input,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--gold-soft);background:rgba(0,0,0,.25);color:var(--cream);font:inherit;font-size:16px;margin:8px 0}
+#msg{color:var(--gold);min-height:18px;font-size:13px;margin:6px 0}
+.fade{animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.coin{position:fixed;width:46px;height:46px;background:url(img/chip.png) center/contain no-repeat;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 8px rgba(233,196,106,.6));z-index:30;pointer-events:none}
+.celebrate{position:fixed;inset:0;background:rgba(3,22,15,.65);display:flex;align-items:center;justify-content:center;z-index:40;padding:20px}
+.cel-box{background:linear-gradient(170deg,var(--bg2),var(--deep));border:1px solid var(--gold);border-radius:18px;padding:20px;max-width:340px;text-align:center}
+.cel-box h3{font-family:var(--head);font-weight:800;color:var(--gold);font-size:20px;margin:0 0 8px}
+.cel-box p{margin:6px 0;font-size:15px}
+.cel-box button{margin-top:10px}
+
+@media (max-width:600px){
+  main{padding:10px 12px 22px}
+  #welcome{padding:18px 4px 30px}
+  #welcome .w-title{font-size:32px}
+  .grid{grid-auto-rows:46px;gap:6px}
+  .board{padding:8px}
+  .lv-card{min-height:62px}
+}
+
+/* ===== Оновлення: логотип, сніг, переваги, сніговий краєвид ===== */
+.logo{display:block;width:190px;max-width:62%;height:auto;margin:6px auto 14px}
+#welcome .logo{width:210px;margin:10px auto 18px}
+#snow i{position:absolute;top:-24px;border-radius:50%;background:radial-gradient(circle,#ffffff 0%,rgba(255,255,255,.85) 55%,rgba(255,255,255,0) 72%);box-shadow:0 0 8px rgba(255,255,255,.55);animation:fall linear infinite,sway ease-in-out infinite alternate}
+@keyframes sway{from{margin-left:-22px}to{margin-left:22px}}
+.deco-village{left:0;bottom:0;width:100vw;max-width:none;opacity:.92;z-index:0}
+.deco-garland{width:40vw;max-width:180px}
+.perks{padding:6px 16px}
+.perks li{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--gold-soft);font-size:15px}
+.perks li:last-child{border-bottom:0}
+.perks li b{display:block;font-size:15px;font-weight:700;color:var(--cream);margin:2px 0 3px}
+.perks .d{display:block;font-size:13px;line-height:1.45;color:var(--muted)}
+.perks .pk{margin-top:2px}
+#welcome{padding-bottom:30vw}
+
+/* ===== Оновлений текст головної ===== */
+.w-sub{font-family:"Formular",var(--head);font-weight:800;font-size:20px;line-height:1.25;color:var(--gold);margin:0 0 8px;max-width:340px}
+.w-lead{text-align:center;font-size:15px;line-height:1.5;color:var(--cream);opacity:.92;max-width:340px;margin:0 0 18px}
+.perks li{align-items:center}
+.perks li b{margin:0;font-size:16px}
+
+/* ===== Головна: логотип у правому верхньому куті ===== */
+#welcome{position:relative;padding-top:52px}
+#welcome .logo-tr{position:absolute;top:0;right:0;width:118px;max-width:none;margin:0}
+
+/* ===== Композиція головної (бриф: цілісність, баланс, снігопад) ===== */
+#welcome{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:calc(100vh - 24px);padding:48px 6px 36vw}
+#welcome .logo-tr{width:140px;top:0;right:0}
+.poker-plate{display:inline-block;font-family:"Formular",var(--head);font-weight:900;font-size:14px;letter-spacing:.18em;color:#073D2B;background:linear-gradient(135deg,#F6DFA0,#E9C46A);border-radius:999px;padding:5px 16px;margin:0 0 10px;box-shadow:0 2px 8px rgba(233,196,106,.25)}
+#welcome .w-title{font-family:"Formular Black","Formular",var(--head);font-weight:900;text-transform:uppercase;font-size:58px;line-height:1;letter-spacing:.02em;margin:0 0 12px;color:var(--cream)}
+#welcome .w-sub{font-family:"Formular",var(--head);font-weight:800;font-size:18px;line-height:1.3;color:var(--gold);margin:0 0 16px;max-width:320px}
+#welcome .perks{width:100%;max-width:330px;margin:0 0 20px;padding:4px 16px}
+#welcome .perks li{align-items:center;padding:10px 0;min-height:52px;text-align:left}
+#welcome .perks li b{font-size:15px;line-height:1.35}
+#welcome .w-btn{min-width:200px;padding:12px 24px;margin:0 auto;box-shadow:0 4px 14px rgba(233,196,106,.22)}
+#welcome .suits{display:none}
+
+/* сніг: більше дрібних, частина розмита для глибини, без яскравого світіння */
+#snow i{position:absolute;top:-16px;border-radius:50%;background:#F4F7F2;opacity:.45;box-shadow:none;animation:fall linear infinite,sway ease-in-out infinite alternate}
+#snow i.big{filter:blur(1.4px);opacity:.32}
+@keyframes sway{from{margin-left:-14px}to{margin-left:14px}}
+
+/* гірлянда: делікатне мерехтіння */
+.deco-garland{animation:flick 4.5s ease-in-out infinite}
+@keyframes flick{0%,100%{opacity:.26}50%{opacity:.36}}
+
+/* нижнє містечко: ширше, сильніше за висотою, щоб не було тонкою смужкою */
+.deco-village{left:-12vw;bottom:0;width:128vw;max-width:none;opacity:1}
+
+/* зимова сцена з будиночками: головна та вибір рівня */
+.deco-winter{left:-9vw;bottom:0;width:118vw;max-width:none;opacity:1}
+body:not(.winter) .deco-winter{display:none}
+body.winter .deco-village{display:none}
+
+
+/* ===== Вертикальна композиція екрана вибору рівня ===== */
+#levelS{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:calc(100vh - 50px);min-height:calc(100dvh - 50px);padding:84px 0 calc(36vw + 8px);box-sizing:border-box}
+#levelS .logo-tr{position:absolute;top:0;right:0;width:140px;margin:0}
+#levelS h2{margin:0 0 8px}
+#levelS .lv-sub{margin:0 0 18px}
+#levelS .lv-cards{margin:0}
+#levelS .lv-help{margin:16px auto 18px}
+#levelS #lvlNext{margin:0 auto}
+#levelS .lv-back{margin:12px auto 0}
+.lv-orn{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 14px}
+.lv-orn .ln{width:64px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.lv-orn .ln:last-child{background:linear-gradient(90deg,var(--gold),transparent)}
+.lv-orn .suit{font-size:16px;color:var(--gold);line-height:1}
+.lv-orn .suit.r{color:var(--red)}
+html{overflow-x:hidden}
+body{position:relative}
+.deco-winter{position:absolute;left:-18vw;width:136vw}
+body.winter .deco-winter{position:fixed;left:-2vw;bottom:0;width:104vw}
+@media (max-height:640px){#levelS .lv-orn{margin-bottom:8px}#levelS .lv-sub{margin-bottom:12px}}
+
+
+/* ===== Календар за макетом ===== */
+.adv-balance{display:grid;grid-template-columns:1fr 1fr;gap:12px;border:1.5px solid var(--gold-dark);border-radius:20px;background:rgba(0,35,24,.25);padding:14px 16px;margin:6px 0 14px}
+.adv-bal-item{display:flex;align-items:center;gap:12px;min-width:0}
+.adv-bal-item+.adv-bal-item{border-left:1px solid rgba(237,198,107,.6);padding-left:16px}
+.adv-bal-icon{width:44px;height:auto;flex:0 0 auto}
+.adv-bal-label{font-size:12px;opacity:.9;margin-bottom:2px}
+.adv-bal-num{font-size:30px;font-weight:800;color:var(--gold);line-height:1.1}
+.adv-bal-lvl{font-size:16px;font-weight:700;color:var(--cream)}
+.adv-board{background:#fff;border-radius:22px;padding:10px;box-shadow:0 8px 0 #641522}
+.adv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(8,minmax(56px,11vw));gap:7px}
+.adv-day{position:relative;border-radius:10px;border:2px solid #eee9df;background:#fff0d1;color:#b92535;display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:700;font-size:clamp(24px,6.5vw,40px);overflow:hidden;cursor:pointer;transition:transform .2s}
+.adv-day:active{transform:scale(.97)}
+.adv-day.red{background:#b92535;color:#fff;border-color:rgba(255,255,255,.3)}
+.adv-num{position:relative;z-index:2}
+.adv-art{position:absolute;font-size:clamp(18px,4.6vw,30px);opacity:.9;right:6px;bottom:5px;z-index:1}
+.adv-art.top{top:5px;left:6px;right:auto;bottom:auto}
+.adv-day.completed::after{content:"✓";position:absolute;bottom:6px;right:6px;width:24px;height:24px;border-radius:50%;background:#08754e;border:2px solid #fff;color:#fff;font-size:14px;display:grid;place-items:center;z-index:3}
+.adv-day.active{background:#fff0cf;border:3px solid var(--gold);color:#a92331;box-shadow:0 0 0 3px rgba(237,198,107,.3),0 0 14px rgba(255,202,82,.5);animation:advPulse 2.5s ease-in-out infinite}
+@keyframes advPulse{0%,100%{box-shadow:0 0 0 2px rgba(237,198,107,.2)}50%{box-shadow:0 0 0 5px rgba(237,198,107,.35),0 0 17px rgba(255,202,82,.4)}}
+.adv-day.locked{cursor:not-allowed;opacity:.85}
+.adv-day.day24{grid-column:1 / -1;min-height:88px;font-size:clamp(40px,10vw,60px);border-radius:12px;margin-top:2px}
+.adv-day.day24 .adv-art{left:22px;right:auto;bottom:12px;font-size:36px}
+.adv-info{text-align:center;margin:18px auto 0;font-size:13px;line-height:1.5;color:#e4e9df}
+
+
+/* ===== Календар: логотип справа, посилання зліва ===== */
+#calS{position:relative;padding-top:52px}
+#calS .logo-tr{position:absolute;top:0;right:0;width:140px;max-width:none;margin:0}
+.adv-topleft{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin:0 0 10px}
+#calS .adv-link{background:none;border:0;padding:0;margin:0;width:auto;min-width:0;font:inherit;font-size:13px;color:var(--gold);text-decoration:underline;text-underline-offset:3px;cursor:pointer;box-shadow:none}
+img.adv-art{width:clamp(24px,6.4vw,36px);height:auto;font-size:0;opacity:.95}
+.adv-day.day24 img.adv-art{width:54px}
+
+
+/* падаючі фішки між сніжинками */
+.fchip{position:absolute;top:-90px;opacity:.75;pointer-events:none;will-change:transform;animation:fchipFall linear forwards;filter:drop-shadow(0 0 5px rgba(255,255,255,.35))}
+@keyframes fchipFall{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(70px,118vh,0) rotate(var(--rot))}}
+
+
+/* ===== Сторінка «Як працює адвент» за референсом ===== */
+#howS{position:relative;padding-top:52px}
+#howS .logo-tr{position:absolute;top:0;right:0;width:140px;max-width:none;margin:0}
+.how-title{font-family:"Formular Black","Formular",var(--head);font-weight:900;text-transform:uppercase;font-size:26px;letter-spacing:.02em;line-height:1.1;color:var(--cream);text-align:center;margin:18px 0 20px}
+.how-card{display:grid;grid-template-columns:44px 1fr 62px;column-gap:12px;align-items:center;background:linear-gradient(160deg,#0f5a40 0%,#06301f 100%);border:1px solid var(--gold-soft);border-radius:22px;padding:18px 16px;margin-bottom:14px}
+.how-num{font-family:"Formular",var(--body);font-weight:400;font-size:36px;line-height:1;color:var(--cream);align-self:center}
+.how-body{min-width:0}
+.how-name{font-family:"Formular Black","Formular",var(--head);font-weight:900;text-transform:uppercase;font-size:16px;line-height:1.2;color:var(--cream);margin:0 0 6px}
+.how-text{margin:0;font-family:"Formular",var(--body);font-weight:400;font-size:14px;line-height:1.5;color:var(--cream);opacity:.92}
+.how-ico{width:62px;height:auto;justify-self:center}
+#howS .how-btn{margin-top:6px}
+
+/* на сторінці «Як працює адвент» без нижньої ілюстрації */
+body.how-page .deco-village{display:none}
+
+/* ===== Головна за новим референсом ===== */
+#welcome .w-title{font-family:"Formular Black","Formular",var(--head);font-weight:900;text-transform:uppercase;font-size:44px;line-height:1.02;letter-spacing:.02em;color:var(--cream);text-shadow:0 0 18px rgba(255,240,200,.35);margin:64px auto 26px;max-width:340px}
+#welcome .w-panel{width:100%;max-width:340px;border:1px solid var(--gold-soft);border-radius:22px;background:rgba(0,30,20,.45);padding:22px 20px;margin:0 0 28px;box-sizing:border-box}
+#welcome .w-hello{font-family:"Formular",var(--body);font-weight:600;font-size:19px;line-height:1.35;color:#F3E3A6;margin:0 0 12px}
+#welcome .w-body{font-family:"Formular",var(--body);font-weight:400;font-size:15px;line-height:1.55;color:var(--cream);margin:0}
+#welcome .w-btn{min-width:240px;padding:13px 26px;margin:0 auto;box-shadow:0 4px 14px rgba(233,196,106,.22)}
+
+
+/* Логотип в однаковому місці на всіх екранах */
+#welcome,#levelS,#howS,#calS{position:relative}
+#welcome .logo-tr,#levelS .logo-tr,#howS .logo-tr,#calS .logo-tr{position:absolute;top:14px;right:14px;width:140px;max-width:none;margin:0}
+
+
+/* Кнопка на виборі рівня — як на головній */
+#levelS #lvlNext{min-width:240px;padding:13px 26px;margin:0 auto;box-shadow:0 4px 14px rgba(233,196,106,.22)}
+
+/* зменшення руху */
+@media (prefers-reduced-motion: reduce){
+  #snow i,.deco-garland,.fchip{animation:none!important}
+}
+.gimg{display:block;width:100%;max-width:100%;max-height:40vh;height:auto;object-fit:contain;border-radius:10px;margin:0 auto 12px}
+#gEnter.btn-off{background:#4b4f48 !important;color:#b9b9ae !important;cursor:not-allowed;opacity:1}
+.weeknote{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+.wn-box{background:#173a2b;border:1px solid #c9a24a;border-radius:14px;padding:16px 18px;max-width:300px;color:#f4ecd8;font-size:15px;text-align:center}
+.wn-box button{margin-top:10px}.wn-sub{color:#c9b98a;font-size:13px}
+</style>
+</head>
+<body class="winter">
+<div id="snow"></div>
+<img class="deco deco-garland" src="img/garland.png" alt="">
+<img class="deco deco-village" src="img/trees_bottom.png" alt="">
+<img class="deco deco-winter" src="img/winter_bottom.png" alt="">
+<main>
+
+  <section id="welcome">
+    <img class="logo logo-tr" src="img/logo.png" alt="Школа Еволюція">
+    <h1 class="w-title" id="wTitle">POKERНИЙ АДВЕНТ</h1>
+    <div class="w-panel">
+      <p class="w-hello">Вітаємо у різдвяному покерному челенджі!</p>
+      <p class="w-body">24 дні до Різдва. Щодня нова комірка, яка покращить твою гру та можливість виграти ексклюзивні подарунки від Еволюції.</p>
+    </div>
+    <button id="toLevel" class="w-btn">Розпочати пригоду →</button>
+  </section>
+
+  <section id="levelS" class="hidden">
+    <img class="logo logo-tr" src="img/logo.png" alt="Школа Еволюція">
+    <h2>Обери свій рівень</h2>
+    <p class="lv-sub">Складність завдань залежатиме від твого досвіду.</p>
+    <div class="lv-cards">
+      <button class="lv-card" data-lvl="новачок"><span class="suit">♠</span><span class="lv-head"><span class="lv-name">НОВАЧОК</span></span><span class="lv-desc">Знаю правила покеру, але ще вчуся обирати стартові руки, захищати блайнди та грати з коротким стеком.</span></button>
+      <button class="lv-card" data-lvl="середній"><span class="suit r">♦</span><span class="lv-head"><span class="lv-name">СЕРЕДНІЙ</span></span><span class="lv-desc">Розумію базову стратегію, знаю про 3-bet та C-bet, хочу краще аналізувати діапазони й складні ігрові ситуації.</span></button>
+      <button class="lv-card" data-lvl="досвідчений"><span class="suit">♣</span><span class="lv-head"><span class="lv-name">ДОСВІДЧЕНИЙ</span></span><span class="lv-desc">Аналізую діапазони, розумію equity, поляризацію ставок та математичні аспекти покеру.</span></button>
+    </div>
+    <p class="lv-help">Не впевнений, який рівень обрати? Орієнтуйся не на кількість років у покері, а на те, наскільки добре ти розумієш описані ігрові ситуації.</p>
+    <button id="lvlNext" class="w-btn" disabled>Продовжити →</button>
+    <button class="ghost lv-back" id="lvlBack">← Назад</button>
+  </section>
+
+  <section id="howS" class="hidden">
+    <img class="logo logo-tr" src="img/logo.png" alt="Школа Еволюція">
+    <h2 class="how-title">Як працює адвент?</h2>
+    <div class="how-card">
+      <div class="how-num">01</div>
+      <div class="how-body"><div class="how-name">Відкривай комірки</div><p class="how-text">Щодня відкривай нову комірку адвент-календаря — всередині на тебе чекає різдвяний сюрприз!</p></div>
+      <img class="how-ico" src="img/ill_11.png" alt="">
+    </div>
+    <div class="how-card">
+      <div class="how-num">02</div>
+      <div class="how-body"><div class="how-name">Виконуй завдання</div><p class="how-text">Щодня на тебе чекатиме новий челендж: цікаве завдання, покерний квіз або інший сюрприз. Виконуй челендж і отримуй +10 фішок за кожне успішне виконання!</p></div>
+      <img class="how-ico" src="img/ill_01.png" alt="">
+    </div>
+    <div class="how-card">
+      <div class="how-num">03</div>
+      <div class="how-body"><div class="how-name">Забирай подарунки</div><p class="how-text">Щонеділі розігруємо подарунки серед учасників. Поріг фішок на кожен тиждень конкретний і відомий заздалегідь, а завдань на тиждень вистачає, щоб його набрати. Тому фішки відкладати не потрібно.</p></div>
+      <img class="how-ico" src="img/ill_12.png" alt="">
+    </div>
+    <div class="how-card">
+      <div class="how-num">04</div>
+      <div class="how-body"><div class="how-name">Одна участь на розіграш</div><p class="how-text">Одна людина — одна участь у кожному розіграші, незалежно від кількості фішок. Фішки потрібні лише як умова: вони не збільшують шанси і не дають права на другу участь.</p></div>
+      <img class="how-ico" src="img/ill_13.png" alt="">
+    </div>
+    <button id="toCal" class="how-btn">До календаря →</button>
+  </section>
+
+  <section id="calS" class="hidden">
+    <img class="logo logo-tr" src="img/logo.png" alt="Школа Еволюція">
+    <div class="adv-topleft"><button class="adv-link" id="changeLvl">Змінити рівень</button><button class="adv-link" id="backHome">← На головну</button></div>
+    <section class="adv-balance">
+      <div class="adv-bal-item"><img class="adv-bal-icon" src="img/chip.png" alt=""><div><div class="adv-bal-label">Мої фішки</div><div class="adv-bal-num" id="chips">0</div></div></div>
+      <div class="adv-bal-item"><span class="adv-bal-icon">🏆</span><div><div class="adv-bal-label">Твій рівень</div><div class="adv-bal-lvl" id="who"></div></div></div>
+    </section>
+    <div class="card demo" style="margin:6px 0">Тест: день <select id="pvDay" style="font:inherit;padding:3px 6px;border-radius:8px"></select> <button class="ghost" id="pvReset" style="width:auto;display:inline-block;margin:0 0 0 6px;padding:4px 10px">Скинути фішки</button></div>
+    <div id="calMsg"></div>
+    <div class="adv-board"><div class="adv-grid" id="grid"></div></div>
+    <p class="adv-info">ⓘ Комірки відкриваються лише у свій день.</p>
+  </section>
+
+</main>
+
+<div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script src="content.js"></script>
+<script>
+// ---------- Telegram ----------
+const TG = window.Telegram && window.Telegram.WebApp;
+if (TG) { TG.ready(); TG.expand(); }
+const user = (TG && TG.initDataUnsafe && TG.initDataUnsafe.user) || { id: 0, first_name: "Гравець" };
+const $ = id => document.getElementById(id);
+
+// ---------- Дати ----------
+let SRV_DAY = null; // день із сервера (тестовий або справжній за Києвом)
+function today() { return SRV_DAY === null ? 0 : SRV_DAY; }
+
+const LABEL = { quiz: "Квіз", read: "Гайд", video: "Відео", draw: "Розіграш", soon: "Скоро" };
+const RED_DAYS = [2, 4, 6, 8, 10, 13, 15, 19, 21, 23];
+// Розкладка: [колонка, рядок, ширина, висота] у сітці з 5 колонок
+const LAYOUT = {
+  1: [1,1,1,1], 2: [2,1,2,1], 3: [4,1,1,1], 4: [5,1,1,1],
+  5: [1,2,1,1], 6: [2,2,1,2], 7: [3,2,1,2], 8: [4,2,2,1],
+  9: [1,3,1,2], 10: [4,3,1,2], 11: [5,3,1,1],
+  12: [2,4,2,1], 13: [5,4,1,1],
+  14: [1,5,2,1], 15: [3,5,1,1], 16: [4,5,2,1],
+  17: [1,6,1,1], 18: [2,6,2,1], 19: [4,6,1,1], 20: [5,6,1,1],
+  21: [1,7,2,1], 22: [3,7,1,1], 23: [4,7,2,1],
+  24: [1,8,5,1]
+};
+
+// ---------- Стан ----------
+const KEY = "advent_" + user.id;
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+S = S || { level: null, opened: {} };
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+// Фішки, квіз і коди нараховує лише сервер; тут зберігаємо його відповідь
+let PTS = {}, BAL = 0, QUIZ = {}, TRIES = {}, LATE = false, WEEK_NEED = null, JOIN_DAY = 0;
+function applyMe(r) {
+  if (!r) return;
+  if (r.points) PTS = r.points;
+  if (typeof r.balance === "number") BAL = r.balance;
+  if (r.quiz) QUIZ = r.quiz;
+  if (r.tries) TRIES = r.tries;
+  if (typeof r.day === "number") SRV_DAY = r.day;
+  if (typeof r.late === "boolean") LATE = r.late;
+  if (typeof r.joinDay === "number") JOIN_DAY = r.joinDay;
+  if (r.weeklyNeed !== undefined) WEEK_NEED = r.weeklyNeed;
+}
+// Комірка доступна для дій: сьогодні і будь-який минулий день (відео, гайд, квіз, код)
+function canAct(d) { return d >= 1 && d <= today(); }
+// Час у київському часовому поясі, незалежно від часу в телефоні користувача
+function kyivFmt(iso) {
+  return new Date(iso).toLocaleString("uk-UA", { timeZone: "Europe/Kyiv", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+}
+// Рядок вікна участі: один день — «6 грудня до 23:59», різні дні — «з … до …»
+function windowText(opensIso, closesIso) {
+  const dayOf = (iso) => new Date(iso).toLocaleDateString("uk-UA", { timeZone: "Europe/Kyiv", day: "numeric", month: "long" });
+  const timeOf = (iso) => new Date(iso).toLocaleTimeString("uk-UA", { timeZone: "Europe/Kyiv", hour: "2-digit", minute: "2-digit" });
+  if (dayOf(opensIso) === dayOf(closesIso)) return "Участь відкрита " + dayOf(opensIso) + " до " + timeOf(closesIso) + " за Києвом.";
+  return "Участь відкрита з " + kyivFmt(opensIso) + " до " + kyivFmt(closesIso) + " за Києвом.";
+}
+function totalChips() { return BAL; }
+function weekOf(d) { return Math.floor(d / 7); }   // Пн–Нд; 1 грудня — вівторок
+function weekChips(d) {
+  const w = weekOf(d);
+  return Object.entries(PTS).reduce((sum, [k, v]) => weekOf(+k.split(":")[0]) === w ? sum + v : sum, 0);
+}
+// Поріг фішок на недільний розіграш для тижня дня d (тиждень 1–6 → 40, 7–13 → 30, 14–20 → 40; 21–24 порогу немає)
+function weekGoal(d) {
+  return { 0: 40, 1: 30, 2: 40 }[weekOf(d)] ?? null;
+}
+
+// ---------- Навігація ----------
+function fitTitle() {
+  // розтягує текст заголовка на всю довжину рамки
+  return; // розмір заголовка задано в CSS
+  const target = Math.min(window.innerWidth - 80, 320);
+  h.style.fontSize = "20px";
+  const r = document.createRange(); r.selectNodeContents(h);
+  const w = r.getBoundingClientRect().width || 1;
+  h.style.fontSize = Math.min(40, 20 * target / w) + "px";
+}
+window.addEventListener("resize", () => { if (!$("welcome").classList.contains("hidden")) fitTitle(); });
+function show(id) {
+  document.body.classList.toggle("on-welcome", id === "welcome");
+  if (id === "welcome") setTimeout(fitTitle, 0);
+  document.body.classList.toggle("on-level", id === "levelS" || id === "howS");
+  document.body.classList.toggle("winter", id === "welcome" || id === "levelS");
+  document.body.classList.toggle("how-page", id === "howS");
+  if (id === "levelS") {
+    document.querySelectorAll(".lv-card").forEach(c => c.classList.toggle("sel", c.dataset.lvl === S.level));
+    $("lvlNext").disabled = !S.level;
+  }
+  ["welcome", "levelS", "howS", "calS"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+}
+
+$("toLevel").onclick = () => show("levelS");
+document.querySelectorAll("[data-lvl]").forEach(b => b.onclick = () => {
+  S.level = b.dataset.lvl; save();
+  show("levelS");
+});
+$("lvlNext").onclick = () => {
+  if (!S.level) return;
+  if (fromCal) { fromCal = false; show("calS"); renderCal(); } else show("howS");
+};
+$("toCal").onclick = () => { show("calS"); renderCal(); };
+$("backHome").onclick = () => show("welcome");
+$("changeLvl").onclick = () => { fromCal = true; show("levelS"); };
+$("lvlBack").onclick = () => { if (S.level) { fromCal = false; show("calS"); renderCal(); } else show("welcome"); };
+let fromCal = false;
+
+// ---------- Календар ----------
+// Розкладка та оформлення комірок (з макета)
+const ADV_AREAS = `"d1 d2 d3 d4" "d5 d6 d7 d8" "d9 d6 d7 d8" "d9 d12 d10 d11" "d9 d12 d10 d13" "d14 d14 d15 d16" "d17 d18 d19 d20" "d21 d22 d23 d23"`;
+const ADV_RED = [2, 4, 6, 8, 10, 13, 15, 19, 21, 23];
+const ADV_ART = {
+  1: {e:"❄️", top:true}, 2: {e:"✳"}, 3: {e:"✨"}, 4: {e:"🎄"}, 5: {e:"🎄", top:true}, 6: {e:"❄️"},
+  7: {e:"🌿", top:true}, 8: {e:"🌲", top:true}, 9: {e:"🔔", top:true}, 10: {e:"🌿"}, 11: {e:"🎁"}, 12: {e:"🎁", top:true},
+  13: {e:"🌿", top:true}, 14: {e:"🌺"}, 15: {e:"🔔"}, 16: {e:"⭐", top:true}, 17: {e:"🏰", top:true}, 18: {e:"🏠"},
+  19: {e:"❄"}, 20: {e:"❄️", top:true}, 21: {e:"❄️"}, 22: {e:"❄"}, 23: {e:"〰"}, 24: {e:"🌿"}
+};
+// Маленьке вікно на початку тижня: скільки фішок треба для недільного розіграшу
+// Разове пояснення для тих, хто приєднався після 1 грудня: з якої дати нараховуються фішки
+// Текст бонусу за провалений квіз залежить від тижня
+function graceText(d) {
+  const w = weekOf(d);
+  if (w === 1) return "Обіцяй, що покращиш свої знання, але грудень — святковий місяць, тому ось тобі 10 фішок.";
+  if (w === 2) return "😠 Не зовсім вдалося, але всі ми чекаємо різдвяне диво, тому ось тобі 10 фішок.";
+  return "Цього разу тобі зараховано 10 фішок за бонусом першого тижня. Продовжуй навчатися та вдосконалювати свою гру!";
+}
+function maybeLateNote() {
+  // Показуємо лише тим, хто приєднався з другого тижня (з 7 грудня) і пізніше
+  if (!LATE || JOIN_DAY < 7 || S.lateNote || document.querySelector(".weeknote")) return;
+  S.lateNote = true; save();
+  const o = document.createElement("div");
+  o.className = "weeknote";
+  o.innerHTML = "<div class='wn-box'><p><b>Ти приєднався до адвент-календаря 🎄</b></p>" +
+    "<p>Не хвилюйся, ти нічого не пропустив! Усі комірки, які вже відкрилися, доступні тобі для перегляду та проходження.</p>" +
+    "<p>Фішки для участі в розіграшах ти починаєш заробляти з того тижня, у якому приєднався до адвент-календаря.</p>" +
+    "<p class='wn-sub'>Зверни увагу: за попередні тижні фішки не нараховуються, а участь у розіграшах за ці періоди недоступна.</p>" +
+    "<button id='lnOk'>Зрозуміло</button></div>";
+  document.body.appendChild(o);
+  $("lnOk").onclick = () => o.remove();
+}
+
+function maybeWeekNote() {
+  const t = today();
+  if (![1, 7, 14, 21].includes(t)) return;
+  const wk = Math.floor(t / 7);
+  if (S.weekNote === wk) return;
+  let html;
+  if (t === 21) {
+    // Останній тиждень: без порогу, участь для всіх
+    html = "<div class='wn-box'><p>Останній тиждень перед Різдвом - це час для дива та святкового настрою. Тому участь в недільному розіграші можуть взяти УСІ і фішки більше не потрібні.</p>" +
+      "<button id='wnOk'>Зрозуміло</button></div>";
+  } else {
+    if (!WEEK_NEED) return;
+    html = "<div class='wn-box'><p>У неділю " + WEEK_NEED.day + " грудня для участі в розіграші потрібно <b>" +
+      WEEK_NEED.threshold + " фішок</b> на балансі.</p><p class='wn-sub'>Зараз у тебе: " + totalChips() + "</p>" +
+      "<button id='wnOk'>Зрозуміло</button></div>";
+  }
+  S.weekNote = wk; save();
+  const o = document.createElement("div");
+  o.className = "weeknote";
+  o.innerHTML = html;
+  document.body.appendChild(o);
+  $("wnOk").onclick = () => o.remove();
+}
+
+// Тестовий селектор дня: змінює день лише для цього акаунта (потребує TEST_MODE=1 на сервері)
+function setupTestBox() {
+  const pv = $("pvDay");
+  if (!pv || pv.options.length) return;
+  for (let i = 0; i <= 25; i++) {
+    pv.add(new Option(i === 0 ? "до 1 грудня" : i === 25 ? "після 24 грудня" : "день " + i, String(i)));
+  }
+  pv.onchange = async () => {
+    const r = await api({ action: "setTestDay", day: +pv.value });
+    applyMe(r);
+    if (r.error) $("calMsg").textContent = r.error;
+    renderCal();
+  };
+  $("pvReset").onclick = async () => {
+    const r = await api({ action: "resetMe" });
+    applyMe(r);
+    delete S.weekNote; delete S.lateNote; save();
+    $("calMsg").textContent = r.error || "Фішки скинуто для тесту.";
+    renderCal();
+  };
+}
+
+function renderCal() {
+  setupTestBox();
+  if ($("pvDay")) $("pvDay").value = String(today());
+  const t = today();
+  $("who").textContent = S.level ? S.level.charAt(0).toUpperCase() + S.level.slice(1) : "не обрано";
+  $("chips").textContent = String(totalChips());
+  $("calMsg").textContent = SRV_DAY === null ? "Немає зв'язку з сервером. Відкрий застосунок у Telegram." : t === 0 ? "Адвент стартує 1 грудня." : t === 25 ? "Адвент завершився. Дякуємо за участь!" : "";
+
+  const g = $("grid"); g.innerHTML = "";
+  g.style.gridTemplateAreas = ADV_AREAS;
+  for (let d = 1; d <= 24; d++) {
+    const c = document.createElement("div");
+    let cls = "adv-day" + (ADV_RED.includes(d) ? " red" : "") + (d === 24 ? " day24" : "");
+    if (d > t) cls += " locked";
+    else if (S.opened[d]) cls += " completed";
+    if (d === t) cls += " active";
+    c.className = cls;
+    if (d !== 24) c.style.gridArea = "d" + d;
+    const art = ADV_ART[d];
+    c.innerHTML = "<img class='adv-art" + (art.top ? " top" : "") + "' src='img/ill_" + String(d).padStart(2, "0") + ".png' alt=''>" +
+                  "<span class='adv-num'>" + d + "</span>";
+    c.onclick = () => onCell(d);
+    g.appendChild(c);
+  }
+}
+function onCell(d) {
+  const t = today();
+  if (d > t) { $("calMsg").textContent = "Комірка " + d + " відкриється " + d + " грудня."; return; }
+  if (d === t && !S.opened[d]) { S.opened[d] = true; save(); api({ action: "open", day: d }); }
+  openSheet(d);
+  renderCal();
+}
+
+// ---------- Модальне вікно ----------
+function openSheet(d) {
+  const active = canAct(d);
+  const info = DAYS[d] || { t: "soon", title: "Скоро" };
+  const wc = weekChips(d);
+  const goal = weekGoal(d);
+  $("sheet").innerHTML =
+    "<div class='hud'><span>Фішки: <b id='hudChips'>" + totalChips() + "</b></span>" +
+    "<span>Тиждень: <b id='hudWeek'>" + wc + "</b>" + (goal ? " / " + goal : "") + "</span></div>" +
+    "<div class='bar' style='" + (goal ? "" : "display:none") + "'><div id='hudBar' style='width:" + (goal ? Math.min(100, wc / goal * 100) : 0) + "%'></div></div>" +
+    "<p class='kicker'>" + d + " грудня</p>" +
+    "<h2>" + (info.title || LABEL[info.t]) + "</h2>" +
+    (active ? "" : "<div class='note'>Цей день ще не настав або вже минув. Тут можна лише переглянути вміст.</div>") +
+    "<div id='body'></div>" +
+    "<div id='res'></div>" +
+    "<button class='ghost' onclick='closeModal()'>Закрити</button>";
+  $("modal").classList.remove("hidden");
+  if (info.t === "soon") $("body").innerHTML = "<div class='panel'>Контент для цього дня ще готується.</div>";
+  else if (info.t === "read") renderRead(d, info, active);
+  else if (info.t === "quiz") {
+    // квіз залежить від рівня; для рівнів без питань показуємо заглушку
+    const lv = info.levels ? info.levels[S.level] : info;
+    if (lv) renderQuiz(d, lv, active);
+    else $("body").innerHTML = "<div class='panel'>Питання для твого рівня ще готується.</div>";
+  }
+  else if (info.t === "video") renderVideo(d, info, active);
+  else if (info.t === "draw") renderDraw(d, info, active);
+  else if (info.t === "giveaway") renderGiveaway(d, info, active);
+  else if (info.t === "qa") renderQA(d, info, active);
+}
+
+function renderRead(d, info, active) {
+  const plates = (info.plates || []).map(p =>
+    "<div class='panel'><b>" + p.name + "</b><br><span style='font-size:13px;color:var(--muted)'>для ABI: " + p.abi + "</span></div>").join("");
+  $("body").innerHTML = "<div class='panel'>" + info.body + "</div>" + plates +
+    (info.url ? "<button class='ghost' id='rdLink'>📄 Відкрити гайд у Google Drive</button>" : "") +
+    (info.codeInput ? codeBox(d, active) : "");
+  if (info.url) $("rdLink").onclick = () => openExternal(info.url);
+  if (info.codeInput) wireCode(d, active);
+}
+
+function renderVideo(d, info, active) {
+  $("body").innerHTML = "<div class='panel'>" + info.hint + "</div>" +
+    (info.url ? "<button class='ghost' id='vidLink'>▶ Дивитися відео на YouTube</button>" : "") +
+    codeBox(d, active);
+  if (info.url) $("vidLink").onclick = () => openExternal(info.url);
+  wireCode(d, active);
+}
+
+function codeBox(d, active) {
+  const done = !!PTS[d + ":code"];
+  const tries = TRIES[d] || 0;
+  const off = !active || done ? "disabled" : "";
+  return "<input id='code' placeholder='Кодове слово' autocomplete='off' " + off + ">" +
+    "<button id='chk' " + off + ">Перевірити (+10)</button>" +
+    "<div id='msg'>" + (done ? "<span class='ok'>Слово правильне, фішки нараховано.</span>" :
+      (tries ? "Спроб використано: " + tries + " з 5" : "")) + "</div>";
+}
+
+function wireCode(d, active) {
+  if (!active || PTS[d + ":code"] || !$("chk")) return;
+  $("chk").onclick = async () => {
+    const val = normWord($("code").value);
+    if (!val) { $("msg").textContent = "Введи кодове слово."; return; }
+    $("chk").disabled = true;
+    const r = await api({ action: "code", day: d, code: val });
+    applyMe(r);
+    if (r.error) {
+      $("msg").textContent = r.error;
+      const locked = !!PTS[d + ":code"] || (TRIES[d] || 0) >= 5;
+      $("chk").disabled = locked;
+      if (locked) $("code").disabled = true;
+      return;
+    }
+    if (r.correct) {
+      $("code").disabled = true;
+      $("msg").innerHTML = "<span class='ok'>Слово правильне, фішки нараховано.</span>";
+      flyChip($("chk"), 10, d);
+      return;
+    }
+    const locked = (TRIES[d] || 0) >= 5;
+    $("chk").disabled = locked;
+    if (locked) $("code").disabled = true;
+    $("msg").innerHTML = "<span style='color:var(--bad)'>Не те слово.</span> Спроб: " + (TRIES[d] || 0) + " з 5";
+  };
+}
+
+function renderDraw(d, info, active) {
+  const threshold = info.threshold ?? 50;
+  const byBalance = info.basis === "balance";
+  const have = byBalance ? totalChips() : weekChips(d);
+  const label = byBalance ? "на балансі" : "за тиждень";
+  $("body").innerHTML = "<div class='panel'><p>Розіграш подарунків.</p>" +
+    "<p>Твої фішки " + label + ": <b style='color:var(--gold2);font-weight:400'>" + have + "</b>. Поріг: " + threshold + ".</p>" +
+    "<p>" + (have >= threshold ? "Ти береш участь у розіграші." : "Щоб взяти участь, потрібно ще " + (threshold - have) + " фішок.") + "</p></div>";
+}
+
+// Нормалізація кодового слова: без урахування регістру і пробілів
+function normWord(s) {
+  return String(s || "").toLowerCase().replace(/\s+/g, "");
+}
+
+// Посилання відкриваються через Telegram (зовнішній браузер або YouTube/Drive)
+function openExternal(url) {
+  if (!url) return;
+  if (TG && TG.openLink) TG.openLink(url);
+  else window.open(url, "_blank");
+}
+
+// ---------- Тест: два запитання (відповіді перевіряє сервер) ----------
+function renderQuiz(d, info, active) {
+  const stage = QUIZ[d] || "q1";
+  if (stage === "done") {
+    $("body").innerHTML = "<div class='panel'><span class='ok'>Завдання виконано, фішки вже нараховано.</span></div>";
+    return;
+  }
+  if (stage === "failed") {
+    $("body").innerHTML = "<div class='panel'>Сьогодні ти вже відкрив цю комірку. Чекаємо тебе завтра</div>";
+    return;
+  }
+  if (stage === "wrong1") {
+    showQuestion(d, info, 1, { chosen: -1, correct: false, why: info.why }, active);
+    return;
+  }
+  showQuestion(d, info, stage === "q2" ? 2 : 1, null, active);
+}
+
+function showQuestion(d, info, step, result, active) {
+  const qq = step === 1 ? info : info.q2;
+  let h = "<div class='qbox fade'><p class='qtext'>" + qq.q + "</p></div><div class='opts'>";
+  qq.opts.forEach((o, i) => {
+    let cls = "opt";
+    if (result) {
+      if (result.correctIdx === i) cls += " correct";
+      else if (i === result.chosen) cls += " wrong";
+    }
+    h += "<button class='" + cls + "' data-i='" + i + "' " + (result || !active ? "disabled" : "") + ">" + o + "</button>";
+  });
+  h += "</div>";
+  $("body").innerHTML = h;
+  $("res").innerHTML = "";
+  if (!result && active) {
+    document.querySelectorAll("#body .opt").forEach(b => b.onclick = () => answer(d, info, step, +b.dataset.i));
+  }
+  if (result) renderResult(d, info, step, result);
+}
+
+function renderResult(d, info, step, result) {
+  const res = $("res");
+  if (result.correct) {
+    res.innerHTML = "<div class='verdict ok fade'>Правильно!</div>" +
+      (result.plus ? "<p>Гарний хід, фішки вже в балансі.</p>" : "");
+    return;
+  }
+  let h = "<div class='verdict bad fade'>Не зовсім</div>" +
+    (result.grace ? "<div class='askbox fade'><p>" + graceText(d) + "</p></div>" : "") +
+    "<div class='why'><b>Пояснення</b><p>" + (result.why || "") + "</p></div>";
+  if (step === 1 && QUIZ[d] === "wrong1" && info.q2) {
+    h += "<div class='askbox fade'><p>Хочеш спробувати ще раз?</p>" +
+      "<button id='retry'>Спробувати ще раз</button></div>";
+  } else if (step === 2) {
+    if (!result.grace) h += "<div class='askbox fade'><p>На жаль, сьогодні не вдалось відповісти вірно. Сподіваємось, що знання були корисними.</p></div>";
+  }
+  res.innerHTML = h;
+  if ($("retry")) $("retry").onclick = async () => {
+    $("retry").disabled = true;
+    const r = await api({ action: "quizRetry", day: d });
+    applyMe(r);
+    if (r.error) { $("retry").disabled = false; res.insertAdjacentHTML("beforeend", "<p>" + escapeHtml(r.error) + "</p>"); return; }
+    QUIZ[d] = "q2";
+    showQuestion(d, info, 2, null, true);
+  };
+}
+
+function celebrate() {
+  const o = document.createElement("div");
+  o.className = "celebrate";
+  o.innerHTML = "<div class='cel-box fade'><h3>ВІТАЄМО! 🎉</h3>" +
+    "<p>Ти правильно відповів та отримав +10 фішок!</p>" +
+    "<p>Продовжуй у тому ж дусі. Гарного дня!</p>" +
+    "<button id='celOk'>Чудово!</button></div>";
+  document.body.appendChild(o);
+  $("celOk").onclick = () => o.remove();
+}
+
+async function answer(d, info, step, i) {
+  const btns = document.querySelectorAll("#body .opt");
+  btns.forEach(b => b.disabled = true);
+  const r = await api({ action: "quiz", day: d, step: step, choice: i, level: S.level });
+  applyMe(r);
+  if (r.error) {
+    $("res").innerHTML = "<div class='askbox fade'><p>" + escapeHtml(r.error) + "</p></div>";
+    btns.forEach(b => b.disabled = false);
+    return;
+  }
+  QUIZ[d] = r.stage;
+  const btn = document.querySelector("#body .opt[data-i='" + i + "']");
+  if (r.correct) {
+    // анімація запускається до перемальовки, поки кнопка ще в DOM
+    if (r.awarded) flyChip(btn, 10, d, celebrate);
+    showQuestion(d, info, step, { chosen: i, correct: true, plus: r.awarded, correctIdx: r.correctIdx }, true);
+    return;
+  }
+  if (step === 1) {
+    showQuestion(d, info, 1, { chosen: i, correct: false, why: info.why, correctIdx: r.correctIdx }, true);
+    return;
+  }
+  if (r.grace) flyChip(btn, 10, d);
+  showQuestion(d, info, 2, { chosen: i, correct: false, why: info.q2.why, grace: r.grace, correctIdx: r.correctIdx }, true);
+}
+
+// ---------- Анімація фішки ----------
+function flyChip(fromEl, amount, d, done) {
+  const to = $("hudChips");
+  if (!fromEl || !to) { if (done) done(); return; }
+  const f = fromEl.getBoundingClientRect();
+  const t = to.getBoundingClientRect();
+  const coin = document.createElement("div");
+  coin.className = "coin";
+  coin.textContent = (amount > 0 ? "+" : "") + amount;
+  document.body.appendChild(coin);
+  const sx = f.left + f.width / 2 - 23, sy = f.top + f.height / 2 - 23;
+  coin.style.left = sx + "px"; coin.style.top = sy + "px";
+  const dx = t.left + t.width / 2 - (sx + 23), dy = t.top + t.height / 2 - (sy + 23);
+  const anim = coin.animate([
+    { transform: "scale(.4)", opacity: 0 },
+    { transform: "scale(1.3)", opacity: 1, offset: .35 },
+    { transform: "translate(" + dx + "px," + dy + "px) scale(.7)", opacity: .95 }
+  ], { duration: 1100, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
+  anim.onfinish = () => {
+    coin.remove();
+    if ($("hudChips")) {
+      const wc = weekChips(d);
+      $("hudChips").textContent = totalChips();
+      $("hudWeek").textContent = wc;
+      const goal = weekGoal(d);
+      if (goal) $("hudBar").style.width = Math.min(100, wc / goal * 100) + "%";
+      if (goal && wc >= goal && $("res") && !document.querySelector("#res .goalNote")) {
+        $("res").insertAdjacentHTML("beforeend", "<p class='goal goalNote fade'>Ціль досягнуто! Ти береш участь у неділю.</p>");
+      }
+    }
+    if (done) done();
+  };
+}
+
+function closeModal() { $("modal").classList.add("hidden"); renderCal(); }
+
+// ===== Вставте цей блок у <script> файлу index.html перед рядком "// ---------- Сніг ----------" =====
+
+// ---------- Бекенд: розіграш і питання тренеру ----------
+const API_URL = "https://ivrpvbtmfzijartjstdk.supabase.co/functions/v1/api";
+const ANON_KEY = "sb_publishable_rUIdugOey6rOCPlUsmWjJg_esn7L8D1"; // публічний anon-ключ Supabase, безпечний для фронтенду
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function api(payload) {
+  try {
+    const r = await fetch(API_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json", apikey: ANON_KEY },
+      body: JSON.stringify({ ...payload, initData: (TG && TG.initData) || "" })
+    });
+    return await r.json();
+  } catch (e) {
+    return { error: "Немає зв'язку з сервером" };
+  }
+}
+
+// Стискаємо фото до ~1000px JPEG, щоб не перевищувати ліміт запиту
+function fileToBase64Jpeg(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 1000 / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * k);
+      c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(img.src);
+      resolve(c.toDataURL("image/jpeg", 0.8).split(",")[1]);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// ---------- Картка тренера ----------
+function trainerCard(info) {
+  if (!info.trainer) return "";
+  return "<div class='panel'><b>Тренер: " + escapeHtml(info.trainer.name) + "</b><br>" +
+         escapeHtml(info.trainer.text).replace(/\n/g, "<br>") + "</div>";
+}
+
+// ---------- Розіграш ----------
+async function renderGiveaway(d, info, active) {
+  $("body").innerHTML = "<div class='panel'>Завантаження…</div>";
+  const st = await api({ action: "state", eventId: info.eventId });
+  if (st.error) { $("body").innerHTML = "<div class='panel'>" + escapeHtml(st.error) + "</div>"; return; }
+
+  const entered = !!(st.me && st.me.entered);
+  const winner = st.event.winner_username
+    ? "<p class='goal'>Переможець: @" + escapeHtml(st.event.winner_username) + "</p>" : "";
+  const thr = st.event.threshold;
+  const bal = (st.me && st.me.balance) || 0;
+  const short = thr != null && !entered && bal < thr;
+  let need = "";
+  if (thr != null && !entered) {
+    need = short
+      ? "<p class='note'>Недостатньо фішок. Потрібно " + thr + ", у тебе зараз " + bal + ".</p>"
+      : "<p class='note'>Для участі буде списано " + thr + " фішок. Зараз у тебе " + bal + ".</p>";
+  }
+
+  // Панель з текстом і фото показуємо, лише якщо там щось є
+  const imgPart = (entered && info.image) ? "<img class='gimg' alt='' src='" + escapeHtml(info.image) + "' onerror='this.remove()'>" : "";
+  const panel = (imgPart || info.body) ? "<div class='panel'>" + imgPart + (info.body || "") + "</div>" : "";
+  // Розіграш з порогом: пояснюємо правила фішок. Без порогу: фішки не потрібні.
+  const rules = thr != null
+    ? "<p class='note'>Одна людина — одна участь у кожному розіграші, незалежно від кількості фішок. Фішки потрібні лише як умова: вони не збільшують шанси і не дають права на другу участь.</p>" +
+      "<p class='note'>Поріг на кожен тиждень конкретний, і завдань на тиждень вистачає, щоб його набрати. Фішки відкладати не потрібно.</p>"
+    : "<p class='note'>Одна людина — одна участь в кожному розіграші.</p>" +
+      "<p class='note'>Для участі в цьому розіграші вам не потрібно використовувати фішки. Так що не переймайтеся, фішки знадобляться лише в неділю.</p>";
+
+  $("body").innerHTML =
+    trainerCard(info) + panel + need +
+    "<p class='note'>" + windowText(st.event.opens_at, st.event.closes_at) + "</p>" +
+    "<p class='note'>Учасників: " + (st.entryCount || 0) + "</p>" +
+    rules + winner +
+    "<button id='gEnter' class='" + (short ? "btn-off" : "") + "' " +
+    (!active || entered || short ? "disabled" : "") + ">" +
+    (entered ? "Ти береш участь ✔" : "Хочу взяти участь у розіграші") + "</button>" +
+    "<div id='gMsg' class='note'></div>";
+
+  if (active && !entered && !short) {
+    $("gEnter").onclick = async () => {
+      $("gEnter").disabled = true;
+      const r = await api({ action: "enter", eventId: info.eventId });
+      applyMe(r);
+      if (r.error) { $("gMsg").textContent = r.error; $("gEnter").disabled = false; return; }
+      $("gEnter").textContent = "Ти береш участь ✔";
+      if (info.image && !document.querySelector(".gimg")) {
+        const img = document.createElement("img");
+        img.className = "gimg"; img.alt = "";
+        img.src = info.image;
+        img.onerror = () => img.remove();
+        const panel = document.querySelector("#body .panel");
+        if (panel) panel.insertBefore(img, panel.firstChild);
+      }
+      if (r.spent) flyChip($("gEnter"), -r.spent, d);
+    };
+  }
+}
+
+// ---------- Питання тренеру ----------
+async function renderQA(d, info, active) {
+  $("body").innerHTML = "<div class='panel'>Завантаження…</div>";
+  const st = await api({ action: "state", eventId: info.eventId });
+  if (st.error) { $("body").innerHTML = "<div class='panel'>" + escapeHtml(st.error) + "</div>"; return; }
+
+  const ev = st.event;
+  const sent = st.me && st.me.sent;
+  const draft = st.me && st.me.draft;
+  const locked = !active || !!sent;
+  const text = sent ? sent.body : (draft ? draft.body : "");
+
+  const answers = (st.answers || []).map(a =>
+    "<div class='panel'><b>@" + escapeHtml(a.username) + ":</b><br>" + escapeHtml(a.body) +
+    "<br><b>Відповідь тренера:</b><br>" + escapeHtml(a.answer) + "</div>").join("");
+
+  $("body").innerHTML =
+    "<div class='panel'>Тренер: <b>" + escapeHtml(ev.trainer_name || "—") + "</b>. " +
+    "Одне повідомлення, у ньому можна задати кілька питань.</div>" +
+    "<textarea id='qBody' maxlength='900' rows='5' " + (locked ? "disabled" : "") +
+    " style='width:100%;padding:12px;border-radius:12px;border:1px solid var(--gold);background:rgba(0,0,0,.3);color:var(--ink);font:inherit;font-size:16px'>" +
+    escapeHtml(text) + "</textarea>" +
+    "<input type='file' id='qPhoto' accept='image/*' " + (locked ? "disabled" : "") + ">" +
+    "<p class='note'>" + (draft && draft.hasPhoto && !sent ? "Фото вже збережено в чернетці" : "Фото не обов'язкове") + "</p>" +
+    (locked ? "" :
+      "<button id='qDraft' class='ghost'>Зберегти чернетку</button>" +
+      "<button id='qSend'>Надіслати тренеру</button>") +
+    (sent ? "<p class='note'>Питання надіслано" +
+      (sent.answer ? ", відповідь є нижче." : ", очікуйте відповідь.") + "</p>" : "") +
+    "<div id='qMsg' class='note'></div>" +
+    "<h2>Відповіді тренера</h2>" +
+    (answers || "<p class='note'>Відповідей поки немає.</p>");
+
+  if (!locked) {
+    const send = async (action) => {
+      const payload = { action, eventId: info.eventId, body: $("qBody").value.trim() };
+      const file = $("qPhoto").files[0];
+      if (file) payload.photoBase64 = await fileToBase64Jpeg(file);
+      const r = await api(payload);
+      if (r.error) { $("qMsg").textContent = r.error; return; }
+      if (action === "submit") { renderQA(d, info, active); return; }
+      $("qMsg").textContent = "Чернетку збережено. Можете повернутися пізніше.";
+    };
+    $("qDraft").onclick = () => send("draftSave");
+    $("qSend").onclick = () => {
+      if (!$("qBody").value.trim()) { $("qMsg").textContent = "Напиши питання"; return; }
+      send("submit");
+    };
+  }
+}
+
+// ---------- Сніг ----------
+const snow = $("snow");
+for (let i = 0; i < 70; i++) {
+  const f = document.createElement("i");
+  const big = Math.random() < 0.3;               // частина сніжинок розмита
+  if (big) f.className = "big";
+  const size = big ? 7 + Math.random() * 6 : 2.5 + Math.random() * 3;
+  f.style.width = f.style.height = size + "px";
+  f.style.left = Math.random() * 100 + "%";
+  f.style.animationDuration = (12 + Math.random() * 12) + "s, " + (4 + Math.random() * 3) + "s";
+  f.style.animationDelay = (-Math.random() * 14) + "s, " + (-Math.random() * 4) + "s";
+  f.style.opacity = big ? (0.3 + Math.random() * 0.25) : (0.5 + Math.random() * 0.4);
+  snow.appendChild(f);
+}
+
+
+// Іноді падають фішки разом зі снігом
+function spawnChip() {
+  const img = document.createElement("img");
+  img.className = "fchip";
+  img.alt = "";
+  img.src = "img/chip_fall.png";
+  img.style.width = (30 + Math.random() * 34) + "px";
+  img.style.left = (Math.random() * 88) + "%";
+  img.style.animationDuration = (9 + Math.random() * 6) + "s";
+  img.style.setProperty("--rot", ((Math.random() < 0.5 ? -1 : 1) * (180 + Math.random() * 180)) + "deg");
+  img.addEventListener("animationend", () => img.remove());
+  snow.appendChild(img);
+}
+if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  setInterval(() => { if (!document.hidden && Math.random() < 0.6) spawnChip(); }, 9000);
+}
+
+// ---------- Старт ----------
+const meReady = api({ action: "me" }).then(applyMe);
+if (S.level) { show("calS"); renderCal(); } else show("welcome");
+meReady.then(() => { if (S.level && !$("calS").classList.contains("hidden")) renderCal(); if (S.level) { maybeWeekNote(); maybeLateNote(); } });
+</script>
+</body>
+</html>
